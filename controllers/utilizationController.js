@@ -55,11 +55,12 @@ export const fetchUtilization = async (req, res) => {
             .select('startDate endDate unitConsumed')
 
         const utilization = utilizationData.map(data => ({
-            startDate: moment(data.startDate).local().format('YYYY-MM-DD HH:mm:ss'),
-            endDate: moment(data.endDate).local().format('YYYY-MM-DD HH:mm:ss'),
+            startDate: moment(data.startDate).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss'),
+            endDate: moment(data.endDate).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss'),
             unitConsumed: data.unitConsumed
         }));
 
+        console.log(utilization);
 
         return res.status(200).json({ utilization })
     }
@@ -82,6 +83,7 @@ export const storeUtilizationData = async (req, res) => {
             unitConsumed
         });
         await utilizationData.save()
+        console.log(utilizationData);
         return res.status(201).json({ message: 'Utilization data stored successfully' });
     } catch (error) {
         console.error('Error storing utilization data:', error);
@@ -98,8 +100,8 @@ export const getAllUtilizationData = async (req, res) => {
             .select('startDate endDate unitConsumed')
 
         const utilization = utilizationData.map(data => ({
-            startDate: moment(data.startDate).local().format('YYYY-MM-DD HH:mm:ss'),
-            endDate: moment(data.endDate).local().format('YYYY-MM-DD HH:mm:ss'),
+            startDate: moment(data.startDate).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss'),
+            endDate: moment(data.endDate).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss'),
             unitConsumed: data.unitConsumed
         }));
 
