@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import Utilization from '../models/utilizationModel.js'
-import moment from 'moment';
+import moment from 'moment-timezone';
 
 export const fetchUnitConsumed = async (req, res) => {
 
@@ -91,7 +91,6 @@ export const storeUtilizationData = async (req, res) => {
     }
 }
 export const getAllUtilizationData = async (req, res) => {
-    console.log("use");
     const userId = req.user.userId;
     try {
         const utilizationData = await Utilization
