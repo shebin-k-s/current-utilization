@@ -165,7 +165,7 @@ export const deleteUser = async (req, res) => {
             return res.status(401).json({ message: "Incorrect password" });
         }
 
-        await user.remove();
+        await user.deleteOne({_id:user._id});
 
         return res.status(200).json({ message: "User deleted successfully" });
 
