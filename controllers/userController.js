@@ -70,7 +70,6 @@ export const login = async (req, res) => {
 
 export const forgetPassword = async (req, res) => {
     const { email } = req.body;
-    console.log(email);
 
     try {
         let user = await User.findOne({ email });
@@ -148,5 +147,29 @@ export const resetPassword = async (req, res) => {
         console.log(error);
         return res.status(500).json({ message: 'Internal server error' });
 
+    }
+}
+
+export const deleteUser = async (req, res) => {
+    const { email, password } = req.body;
+
+    try {
+        let user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const isPasswordCorrect = bcrypt.compareSync(password, user.password);
+        if (!isPasswordCorrect) {
+            return res.status(401).json({ message: "Incorrect password" });
+        }
+
+        await user.remove();
+
+        return res.status(200).json({ message: "User deleted successfully" });
+
+    } catch (error) {
+        return res.status(500).json({ message: "Internal server error" });
     }
 }

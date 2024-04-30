@@ -60,8 +60,6 @@ export const fetchUtilization = async (req, res) => {
             unitConsumed: data.unitConsumed
         }));
 
-        console.log(utilization);
-
         return res.status(200).json({ utilization })
     }
     catch (error) {
@@ -73,7 +71,6 @@ export const fetchUtilization = async (req, res) => {
 
 export const storeUtilizationData = async (req, res) => {
     const { userId, startDate, endDate, unitConsumed } = req.body;
-    console.log(req.body);
     const userIdObject = new mongoose.Types.ObjectId(userId.toString());
     try {
         const utilizationData = new Utilization({
