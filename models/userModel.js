@@ -19,7 +19,11 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
         minlength: 6
-    }
+    },
+    devices: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Device'
+    }]
 })
 
 

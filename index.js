@@ -2,7 +2,7 @@ import express from "express"
 import mongoose from "mongoose"
 import dotenv from 'dotenv'
 import { verifyToken } from "./middleware/authMiddleware.js"
-import { utilizationRoute,authRoute, storeUtilizationRoute } from "./routes/index.js"
+import { utilizationRoute,authRoute, storeUtilizationRoute, deviceRoute, userDeviceRoute } from "./routes/index.js"
 
 dotenv.config()
 
@@ -16,6 +16,8 @@ app.use(express.urlencoded({ extended: true }))
 app.use("/api/auth",authRoute)
 app.use("/api/utilization",verifyToken,utilizationRoute)
 app.use("/api/storeutilization",storeUtilizationRoute)
+app.use("/api/device",deviceRoute)
+app.use("/api/user-device",verifyToken,userDeviceRoute)
 
 
 const PORT = process.env.PORT || 5000

@@ -1,9 +1,9 @@
 import mongoose from "mongoose"
 
 const utilizationSchema = new mongoose.Schema({
-    userId: {
+    deviceId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        ref: 'Device',
         required: true
     },
     startDate: {
@@ -18,7 +18,6 @@ const utilizationSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
-
 })
 
 const Utilization = mongoose.model('Utilization', utilizationSchema);

@@ -1,22 +1,27 @@
 import mongoose from 'mongoose';
 import Utilization from '../models/utilizationModel.js'
 import moment from 'moment-timezone';
+import Device from '../models/deviceModel.js';
 
 export const fetchUnitConsumed = async (req, res) => {
 
-    const { startDate, endDate } = req.query;
-
+    const { startDate, endDate, deviceId } = req.query;
+    console.log(req.query);
+    
     const startDateUTC = moment(startDate).utc().toDate();
     const endDateUTC = moment(endDate).utc().toDate();
 
     const endOfDate = new Date(endDateUTC);
     endOfDate.setHours(23, 59, 59, 999);
 
-    const userId = req.user.userId;
     try {
+        const deviceObjectId = await Device
+            .findOne({ deviceId })
+            .select('_id')
+
         const utilizationData = await Utilization
             .find({
-                userId,
+                deviceId: deviceObjectId,
                 startDate: { $gte: startDateUTC, $lte: endOfDate }
             })
             .select('unitConsumed')
@@ -26,6 +31,8 @@ export const fetchUnitConsumed = async (req, res) => {
         utilizationData.forEach(data => {
             totalUnitConsumed += data.unitConsumed;
         });
+
+        console.log(totalUnitConsumed);
 
         return res.status(200).json({ totalUnitConsumed })
     }
@@ -38,26 +45,31 @@ export const fetchUnitConsumed = async (req, res) => {
 
 export const fetchUtilization = async (req, res) => {
 
-    const { startDate, endDate } = req.query;
-    
+    const { startDate, endDate, deviceId } = req.query;
+
+
     const startDateUTC = moment(startDate).utc().toDate();
     const endDateUTC = moment(endDate).utc().toDate();
     const endOfDate = new Date(endDateUTC);
     endOfDate.setHours(23, 59, 59, 999);
-    const userId = req.user.userId;
     try {
+        const deviceObjectId = await Device
+            .findOne({ deviceId })
+            .select('_id')
         const utilizationData = await Utilization
             .find({
-                userId,
+                deviceId: deviceObjectId,
                 startDate: { $gte: startDateUTC, $lte: endOfDate }
             })
+            .populate('deviceId','deviceName')
             .sort({ startDate: -1 })
-            .select('startDate endDate unitConsumed')
+            .select('startDate endDate unitConsumed deviceName')
 
         const utilization = utilizationData.map(data => ({
             startDate: moment(data.startDate).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss'),
             endDate: moment(data.endDate).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss'),
-            unitConsumed: data.unitConsumed
+            unitConsumed: data.unitConsumed,
+            deviceName: data.deviceId.deviceName
         }));
 
         return res.status(200).json({ utilization })
@@ -70,11 +82,14 @@ export const fetchUtilization = async (req, res) => {
 }
 
 export const storeUtilizationData = async (req, res) => {
-    const { userId, startDate, endDate, unitConsumed } = req.body;
-    const userIdObject = new mongoose.Types.ObjectId(userId.toString());
+    const { deviceId, startDate, endDate, unitConsumed } = req.body;
     try {
+        const deviceObjectId = await Device
+            .findOne({ deviceId })
+            .select('_id')
+
         const utilizationData = new Utilization({
-            userId: userIdObject,
+            deviceId: deviceObjectId,
             startDate,
             endDate,
             unitConsumed
@@ -87,23 +102,4 @@ export const storeUtilizationData = async (req, res) => {
         return res.status(500).json({ message: 'Internal server error' });
     }
 }
-export const getAllUtilizationData = async (req, res) => {
-    const userId = req.user.userId;
-    try {
-        const utilizationData = await Utilization
-            .find({ userId })
-            .sort({ startDate: -1 })
-            .select('startDate endDate unitConsumed')
 
-        const utilization = utilizationData.map(data => ({
-            startDate: moment(data.startDate).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss'),
-            endDate: moment(data.endDate).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss'),
-            unitConsumed: data.unitConsumed
-        }));
-
-        return res.status(200).json({ utilization });
-    } catch (error) {
-        console.error('Error fetching utilization data:', error);
-        return res.status(500).json({ message: 'Internal server error' });
-    }
-};
