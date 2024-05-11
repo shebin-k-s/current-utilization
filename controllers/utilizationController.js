@@ -64,7 +64,6 @@ export const fetchUtilization = async (req, res) => {
             .populate('deviceId','deviceName')
             .sort({ startDate: -1 })
             .select('startDate endDate unitConsumed deviceName')
-
         const utilization = utilizationData.map(data => ({
             startDate: moment(data.startDate).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss'),
             endDate: moment(data.endDate).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss'),

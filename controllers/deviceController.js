@@ -1,3 +1,4 @@
+import { updateDeviceStatus } from "../index.js";
 import Device from "../models/deviceModel.js";
 import User from "../models/userModel.js"
 
@@ -73,7 +74,7 @@ export const getDevices = async (req, res) => {
             deviceId: device.deviceId,
             serialNumber: device.serialNumber,
             deviceOn: device.deviceOn,
-            deviceName:device.deviceName
+            deviceName: device.deviceName
         }));
         if (!devices) {
             return res.status(404).json({ message: "device not found" });
@@ -101,7 +102,7 @@ export const addDevice = async (req, res) => {
         const newDevice = new Device({
             deviceId,
             serialNumber,
-            deviceName:`Device ${deviceId}`
+            deviceName: `Device ${deviceId}`
         });
         await newDevice.save();
 
@@ -153,3 +154,26 @@ export const changeDeviceName = async (req, res) => {
         return res.status(500).json({ message: "Internal server error" });
     }
 }
+
+export const changeDeviceStatus = async (req, res) => {
+    const { deviceId, serialNumber, deviceOn } = req.body;
+
+    try {
+        let device = await Device.findOne({ deviceId, serialNumber });
+
+        if (!device) {
+            return res.status(404).json({ message: "Device not found" });
+        }
+
+        device.deviceOn = deviceOn;
+        await device.save();
+
+        updateDeviceStatus(device.deviceId, deviceOn);
+
+        return res.status(200).json({ message: "Device status updated successfully", device });
+    } catch (error) {
+        console.error("Error updating device status:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+}
+

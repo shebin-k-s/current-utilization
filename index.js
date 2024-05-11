@@ -1,32 +1,69 @@
-import express from "express"
-import mongoose from "mongoose"
-import dotenv from 'dotenv'
-import { verifyToken } from "./middleware/authMiddleware.js"
-import { utilizationRoute,authRoute, storeUtilizationRoute, deviceRoute, userDeviceRoute } from "./routes/index.js"
+// server.js
 
-dotenv.config()
+import express from "express";
+import mongoose from "mongoose";
+import dotenv from 'dotenv';
+import { Server } from 'socket.io';
+import { verifyToken } from "./middleware/authMiddleware.js";
+import { utilizationRoute, authRoute, storeUtilizationRoute, deviceRoute, userDeviceRoute } from "./routes/index.js";
+import { SocketDevice } from "./socket/socketDevice.js";
 
-const app = express()
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
+dotenv.config();
 
+const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
+app.use("/api/auth", authRoute);
+app.use("/api/utilization", verifyToken, utilizationRoute);
+app.use("/api/storeutilization", storeUtilizationRoute);
+app.use("/api/device", deviceRoute);
+app.use("/api/user-device", verifyToken, userDeviceRoute);
 
+const PORT = process.env.PORT || 5000;
 
-app.use("/api/auth",authRoute)
-app.use("/api/utilization",verifyToken,utilizationRoute)
-app.use("/api/storeutilization",storeUtilizationRoute)
-app.use("/api/device",deviceRoute)
-app.use("/api/user-device",verifyToken,userDeviceRoute)
+let io;
+const socketDeviceMap = {};
 
-
-const PORT = process.env.PORT || 5000
 mongoose.connect(process.env.CONNECTION_URL)
     .then(() => {
-        app.listen(PORT, () => {
-            console.log(`server running at ${PORT}`);
-        })
+        const server = app.listen(PORT, () => {
+            console.log(`Server running at ${PORT}`);
+        });
+        io = new Server(server);
+
+        io.on('connection', (socket) => {
+            console.log('Client connected');
+
+            const socketDevice = new SocketDevice(socket.id);
+
+            socketDeviceMap[socket.id] = socketDevice;
+
+            socket.on('setDevices', (deviceIds) => {
+                socketDevice.addDeviceIds(deviceIds);
+            });
+
+
+            socket.on('disconnect', () => {
+                delete socketDeviceMap[socket.id];
+                console.log('Client disconnected');
+            });
+        });
+
     })
     .catch((error) => {
         console.log(error);
-    })
+    });
+
+export const updateDeviceStatus = (deviceId, deviceOn) => {
+    try {
+        for (const socketId in socketDeviceMap) {
+            const socketDevice = socketDeviceMap[socketId];
+            if (socketDevice.deviceIds.includes(deviceId)) {
+                io.to(socketId).emit('deviceStatus', { deviceId, deviceOn });
+            }
+        }
+    } catch (error) {
+        console.error('Error updating device status:', error);
+    }
+};

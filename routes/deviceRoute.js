@@ -1,5 +1,5 @@
 import express from 'express'
-import { addDevice, removeDevice } from '../controllers/deviceController.js'
+import { addDevice, changeDeviceStatus, removeDevice } from '../controllers/deviceController.js'
 
 const router = express.Router()
 
@@ -9,4 +9,6 @@ router.route("/add-device")
 router.route("/remove-device")
     .delete(removeDevice)
 
+router.route("/change-devicestatus")
+    .post(changeDeviceStatus)
 export default router
